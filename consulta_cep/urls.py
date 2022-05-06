@@ -1,10 +1,10 @@
 from django.contrib import admin
 from django.urls import include, path
 
-from endereco.views import ListEndereco
+import endereco.urls as endereco
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('endereco/', ListEndereco.as_view())
+    path('endereco/', include(endereco))
 ]

@@ -9,7 +9,9 @@ from endereco.utils import CustomException
 
 class ListEndereco(APIView):
     def get(self, request):
-        pass
+        enderecos = Endereco.objects.all()
+        serializer = EnderecoSerializer(instance=enderecos, many=True)
+        return Response(data=serializer.data, status=200)
     
     def post(self, request):
         cep = request.data.get('cep', None)
@@ -34,7 +36,7 @@ class ListEndereco(APIView):
             raise CustomException(
                 status_code=404,
                 attr='cep',
-                message='CEP não encontrado.'
+                message='CEP não registrado.'
             )
         
         endereco_data = api_request.json()
@@ -44,12 +46,28 @@ class ListEndereco(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return Response(
-                data=serializer.data,
-                status=200
+            return Response(data=serializer.data, status=200)
+        
+        return Response(data=serializer.errors, status=400)
+
+class DetailEndereco(APIView):
+    def get(self, request, cep):
+        if not cep.isnumeric() or len(cep) != 8:
+            raise CustomException(
+                status_code=404,
+                attr='cep',
+                message='Formato de CEP inválido.'
             )
         
-        return Response(
-            data=serializer.errors,
-            status=400
-        )
+        try:
+            endereco = Endereco.objects.get(cep=cep)
+        except:
+            raise CustomException(
+                status_code=404,
+                attr='cep',
+                message='CEP não registrado.'
+            )
+        
+        serializer = EnderecoSerializer(instance=endereco)
+        
+        return Response(data=serializer.data, status=200)
